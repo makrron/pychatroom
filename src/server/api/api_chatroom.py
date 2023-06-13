@@ -6,9 +6,9 @@ app = Flask(__name__)
 
 
 def get_db_connection():
-    conn = sqlite3.connect('chatroom.db')
-    conn.row_factory = sqlite3.Row
-    return conn
+    connection = sqlite3.connect('chatroom.db')
+    connection.row_factory = sqlite3.Row
+    return connection
 
 
 @app.route('/', methods=['GET'])
@@ -37,3 +37,7 @@ def add_user():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+    c = get_db_connection()
+    # Clear database
+    c.execute('delete from USERS')
+    c.commit()

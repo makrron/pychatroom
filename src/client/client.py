@@ -1,19 +1,17 @@
 import base64
 import json
 import socket
-
-from src.common.encryption import generate_keys, get_public_key, get_private_key, sign_message
+import src.common.encryption as encryption
 
 # Dirección y puerto del servidor
 SERVER_ADDRESS = '127.0.0.1'
 SERVER_PORT = 12345
 
 # Generar par de claves RSA
-generate_keys()
+encryption.generate_keys()
 # Cargar clave pública y privada del usuario
-public_key = get_public_key()
-private_key = get_private_key()
-
+public_key = encryption.get_public_key()
+private_key = encryption.get_private_key()
 
 # Conectar al servidor
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -21,12 +19,13 @@ client_socket.connect((SERVER_ADDRESS, SERVER_PORT))
 
 # Enviar nickname y clave pública al servidor
 nickname = input("Ingrese su nickname: ")
+print("-" * 50)
 message = {
     'nickname': nickname,
     'public_key': public_key.export_key().decode()
 }
 
-signature = sign_message(public_key.export_key(), private_key)
+signature = encryption.sign_message(public_key.export_key(), private_key)
 data = {
     'message': message,
     'signature': base64.b64encode(signature).decode()
@@ -38,8 +37,19 @@ client_socket.send(data)
 
 # Recibir respuesta del servidor
 response = client_socket.recv(2048)
-print(response.decode())
+if 'joined the chatroom' in response.decode():
+    print('INFO: User added successfully')
+    print('INFO: Joining chatroom...')
+    print(response.decode())
+    while True:
+        # Enviar mensaje al servidor
+        message = input()
+        client_socket.sendall(message.encode())
+        # Recibir respuesta del servidor
+        response = client_socket.recv(2048)
+        print(response.decode())
 
-
-# Cerrar conexión
-client_socket.close()
+else:
+    print('esto?')
+    client_socket.close()
+    exit()

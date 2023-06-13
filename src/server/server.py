@@ -17,7 +17,7 @@ server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind((SERVER_IP, SERVER_PORT))
 
 # Escuchar conexiones entrantes
-server_socket.listen(1)
+server_socket.listen()
 print('Esperando conexiones entrantes...')
 
 # Aceptar conexión de un cliente
@@ -38,7 +38,6 @@ hash_value = SHA256.new(public_key.export_key())
 is_valid = verify_message(message=public_key.export_key(), signature=signature, public_key=public_key)
 
 if is_valid:  # Si la firma es válida guardamos el usuario en la base de datos
-    print('Firma verificada.')
     # Almacenar la clave pública del cliente en la base de datos a través de la API
     with requests.Session() as s:
         try:
@@ -53,10 +52,20 @@ if is_valid:  # Si la firma es válida guardamos el usuario en la base de datos
         except Exception as e:
             response = "ERROR: Error sending data to server: " + str(e)
     # Enviar respuesta al cliente
-    client_socket.sendall(response.encode())
+    if response in 'INFO: Users added successfully':
+        client_socket.sendall(f'[SERVER] {nickname} has joined the chatroom.'.encode())
+        # Recibir mensajes del cliente
+        while True:
+            message = client_socket.recv(2048)
+            print(message.decode())
+            # Enviar respuesta al cliente
+            client_socket.sendall(f'[{nickname}]: {message.decode()}'.encode())
 else:
     response = 'ERROR: Invalid signature.'
     client_socket.sendall(response.encode())
+    server_socket.close()
+    client_socket.close()
+
 
 # Cerrar conexión
 client_socket.close()
