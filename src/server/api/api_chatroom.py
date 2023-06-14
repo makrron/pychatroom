@@ -35,6 +35,19 @@ def add_user():
         return "INFO: Users added successfully"
 
 
+# Endpoint para obtener la clave pública de un usuario
+@app.route('/publickey/<nickname>', methods=['GET'])
+def get_user(nickname):
+    conn = get_db_connection()
+    if request.method == 'GET':
+        user = conn.execute('SELECT * FROM USERS WHERE NICKNAME = ?', (nickname,)).fetchone()
+        if user is None:
+            return "ERROR: User not found"
+        else:
+            return user['PUBLIC_KEY']
+    conn.close()
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
     c = get_db_connection()

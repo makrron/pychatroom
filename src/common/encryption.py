@@ -82,13 +82,13 @@ def get_private_key():
 def encrypt_message(message, public_key):
     """
     Encrypts a message using RSA algorithm
-    :param message: message to encrypt
+    :param message: message to encrypt (in bytes)
     :param public_key: public keys to encrypt the message
     :return: encrypted message
     """
-    key = RSA.import_key(public_key)
+    key = public_key
     cipher_rsa = PKCS1_OAEP.new(key)
-    encrypted_message = cipher_rsa.encrypt(message.encode())
+    encrypted_message = cipher_rsa.encrypt(message)
     return encrypted_message
 
 
@@ -99,7 +99,7 @@ def decrypt_message(encrypted_message, private_key):
     :param private_key: private keys to decrypt the message
     :return: decrypted message
     """
-    key = RSA.import_key(private_key)
+    key = private_key
     cipher_rsa = PKCS1_OAEP.new(key)
     decrypted_message = cipher_rsa.decrypt(encrypted_message)
     return decrypted_message
