@@ -5,7 +5,6 @@ import threading
 import time
 
 import requests
-from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 
 from src.common import encryption
@@ -40,7 +39,7 @@ def get_client_public_key(nickname) -> RSA.RsaKey or None:
             client_public_key = RSA.import_key(response)
             return client_public_key
         except Exception as e:
-            print("ERROR: Error sending data to server: " + str(e.with_traceback()))
+            print("ERROR: Error sending data to server: " + str(e))
             return None
 
 
@@ -55,7 +54,6 @@ def handle_client(client_socket):
 
     # Verificar la firma del mensaje utilizando la clave pública del cliente
     public_key = RSA.import_key(public_key)
-    hash_value = SHA256.new(public_key.export_key())
     is_valid = verify_message(message=public_key.export_key(), signature=signature, public_key=public_key)
 
     if is_valid:  # Si la firma es válida guardamos el usuario en la base de datos
@@ -125,7 +123,7 @@ def handle_client(client_socket):
                                 data = base64.b64encode(json.dumps(data).encode())
                                 client[0].send(data)
                             except Exception as e:
-                                print("ERROR: Error sending data to server: " + str(e.with_traceback()))
+                                print("ERROR: Error sending data to server" + str(e))
     else:
         response = 'ERROR: Invalid signature.'
         client_socket.send(response.encode())

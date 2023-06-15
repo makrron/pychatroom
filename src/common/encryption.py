@@ -105,13 +105,26 @@ def decrypt_message(encrypted_message, private_key):
     return decrypted_message
 
 
-def sign_message(message, private_key):
+def sign_message(message, private_key) -> bytes:
+    """
+    Signs a message using RSA algorithm
+    :param message: to sign
+    :param private_key:
+    :return signature:
+    """
     h = SHA256.new(message)
-    s = pkcs1_15.new(private_key).sign(h)
-    return s
+    signature = pkcs1_15.new(private_key).sign(h)
+    return signature
 
 
-def verify_message(message, signature, public_key):
+def verify_message(message, signature, public_key) -> bool:
+    """
+    Verifies a message using RSA algorithm
+    :param message:
+    :param signature:
+    :param public_key:
+    :return:
+    """
     h = SHA256.new(message)
     try:
         pkcs1_15.new(public_key).verify(h, signature)
