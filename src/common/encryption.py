@@ -95,9 +95,9 @@ def encrypt_message(message, public_key):
 def decrypt_message(encrypted_message, private_key):
     """
     Decrypts a message using RSA algorithm
-    :param encrypted_message: message to decrypt
+    :param encrypted_message: message to decrypt (in bytes)
     :param private_key: private keys to decrypt the message
-    :return: decrypted message
+    :return: decrypted message (in bytes)
     """
     key = private_key
     cipher_rsa = PKCS1_OAEP.new(key)

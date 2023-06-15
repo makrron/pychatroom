@@ -33,6 +33,17 @@ client_threads = []
 client_sockets = []
 
 
+def get_client_public_key(nickname) -> RSA.RsaKey or None:
+    with requests.Session() as s:
+        try:
+            response = s.get('http://127.0.0.1:5000/publickey/' + nickname).text
+            client_public_key = RSA.import_key(response)
+            return client_public_key
+        except Exception as e:
+            print("ERROR: Error sending data to server: " + str(e.with_traceback()))
+            return None
+
+
 def handle_client(client_socket):
     # Recibir el mensaje firmado del cliente
     data = client_socket.recv(2048)
@@ -97,10 +108,22 @@ def handle_client(client_socket):
                         with requests.Session() as s:
                             try:
                                 response = s.get('http://127.0.0.1:5000/publickey/' + client[1]).text
-                                client_public_key = RSA.import_key(response)
+                                client_public_key = RSA.import_key(response.encode())
                                 message = encryption.encrypt_message(message, client_public_key)
                                 print("mensaje a enviar", message)
-                                client[0].send(f'[{nickname}]: {message}'.encode())
+                                # Creamos un json del mensaje: {nickname: str, message: bytes}
+                                msg = {
+                                    'nickname': nickname,
+                                    'message': base64.b64encode(message).decode()
+                                }
+                                # Firmamos el mensaje
+                                signature = encryption.sign_message(message, server_private_key)
+                                data = {
+                                    'message': msg,
+                                    'signature': base64.b64encode(signature).decode()
+                                }
+                                data = base64.b64encode(json.dumps(data).encode())
+                                client[0].send(data)
                             except Exception as e:
                                 print("ERROR: Error sending data to server: " + str(e.with_traceback()))
     else:

@@ -25,8 +25,23 @@ def receive_messages():
         # Recibir mensaje del servidor
         r = client_socket.recv(2048)
         # Descifrar el mensaje con la clave privada del cliente
-        msg = encryption.decrypt_message(r, private_key)
-        print(msg)
+        if '[SERVER]' in r.decode():
+            print(r.decode())
+        else:
+            # Deshacemos el mensaje que viene como: base64.b64encode(json.dumps(data).encode())
+            data = json.loads(base64.b64decode(r).decode())
+            # Dividimos el mensaje
+            nickname = data['message']['nickname']
+            message = data['message']['message']  # viene como base64.b64encode(message).decode()
+            message = base64.b64decode(message)
+            signature = base64.b64decode(data['signature'])
+
+            # Verificar la firma del mensaje utilizando la clave pública del servidor
+            is_valid = encryption.verify_message(message=message, signature=signature, public_key=server_public_key)
+            if is_valid:
+                print('[' + nickname + ']' + ': ' + encryption.decrypt_message(message, private_key).decode())
+            else:
+                print('ERROR: Invalid signature')
 
 
 # Conectar al servidor
